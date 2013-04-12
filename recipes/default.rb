@@ -97,22 +97,20 @@ directory node[:kafka][:data_dir] do
   action :create
 end
 
-# pull the remote file only if we create the directory
-tarball = "kafka-#{node[:kafka][:version]}.tar.gz"
+distrib = "kafka-#{node[:kafka][:version]}-incubating-src"
+tarball = "#{distrib}.tgz"
 download_file = "#{node[:kafka][:download_url]}/#{tarball}"
 
 remote_file "#{Chef::Config[:file_cache_path]}/#{tarball}" do
   source download_file
   mode 00644
   checksum node[:kafka][:checksum]
-  ## notifies :run, "execute[tar]", :immediately
 end
 
 execute "tar" do
   user  "root"
   group "root"
   cwd install_dir
-  ## action :nothing
   command "tar zxvf #{Chef::Config[:file_cache_path]}/#{tarball}"
 end
 
@@ -172,10 +170,28 @@ execute "chown" do
 end
 
 execute "chmod" do
-	command "chmod -R 755 #{install_dir}/bin"
-	action :run
+  command "chmod -R 755 #{install_dir}/#{distrib}/bin"
+  action :run
 end
 
+execute "sbt update" do
+  user  "root"
+  group "root"
+  command "bash sbt update"
+  cwd "#{install_dir}/#{distrib}"
+  action :run
+end
+
+execute "sbt package" do
+  user  "root"
+  group "root"
+  command "bash sbt package"
+  cwd "#{install_dir}/#{distrib}"
+  action :run 
+end
+
+#TODO : install service script
+#TODO : start service
 # create the runit service
 runit_service "kafka" do
   options({

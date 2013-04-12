@@ -17,9 +17,9 @@
 # limitations under the License.
 
 # Install
-default[:kafka][:version] = "0.7.1"
-default[:kafka][:download_url] = nil
-default[:kafka][:checksum] = "ee845b947b00d6d83f51a93e6ff748bb03e5945e4f3f12a77534f55ab90cb2a8"
+default[:kafka][:version] = "0.7.2"
+default[:kafka][:download_url] = "http://mirrors.ircam.fr/pub/apache/incubator/kafka/kafka-0.7.2-incubating" 
+default[:kafka][:checksum] = "5d2c39a93d0e"
 
 default[:kafka][:install_dir] = "/opt/kafka"
 default[:kafka][:data_dir] = "/var/kafka"
