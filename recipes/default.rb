@@ -120,7 +120,7 @@ template "#{install_dir}/bin/service-control" do
   group "root"
   mode  00755
   variables({
-    :install_dir => install_dir,
+    :install_dir => "#{install_dir}/#{distrib}",
     :log_dir => node[:kafka][:log_dir],
     :java_home => java_home,
     :java_jmx_port => node[:kafka][:jmx_port],
@@ -134,6 +134,10 @@ zookeeper_pairs = Array.new
 if not Chef::Config.solo
   search(:node, "role:zookeeper AND chef_environment:#{node.chef_environment}").each do |n|
     zookeeper_pairs << n[:fqdn]
+  end
+elsif node[:zookeeper][:cluster_servers].length > 0
+  node[:zookeeper][:cluster_servers].each do |cs|
+    zookeeper_pairs << cs[:zookeeper][:ipaddress]
   end
 end
 
@@ -196,7 +200,7 @@ end
 runit_service "kafka" do
   options({
     :log_dir => node[:kafka][:log_dir],
-    :install_dir => install_dir,
+    :install_dir => "#{install_dir}",
     :java_home => java_home,
     :user => user
   })
