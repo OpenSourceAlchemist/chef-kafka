@@ -9,17 +9,48 @@ HOME_DIR="<%=@install_dir%>"
 JAVA_HOME="<%=@java_home%>"
 SERVER_CONFIG="<%=@install_dir%>/config/server.properties"
 
-# Setup classpath, initially empty.
-CP=""
+# # Setup classpath, initially empty.
+# CP=""
+# 
+# # Add all .jar files to the classpath.
+# for jar in `ls $HOME_DIR/lib/*`; do
+#     if [ "" = "$CP" ]; then
+#         CP=$jar
+#     else
+#         CP=$CP:$jar
+#     fi
+# done
 
-# Add all .jar files to the classpath.
-for jar in `ls $HOME_DIR/lib/*`; do
-    if [ "" = "$CP" ]; then
-        CP=$jar
-    else
-        CP=$CP:$jar
-    fi
+# Classpath building code taken from kafka-0.7.2-incubating-src/bin/kafka-run-class.sh
+CLASSPATH=""
+for file in $HOME_DIR/project/boot/scala-2.8.0/lib/*.jar;
+do
+  CLASSPATH=$CLASSPATH:$file
 done
+
+for file in $HOME_DIR/core/target/scala_2.8.0/*.jar;
+do
+  CLASSPATH=$CLASSPATH:$file
+done
+
+for file in $HOME_DIR/core/lib/*.jar;
+do
+  CLASSPATH=$CLASSPATH:$file
+done
+
+for file in $HOME_DIR/perf/target/scala_2.8.0/kafka*.jar;
+do
+  CLASSPATH=$CLASSPATH:$file
+done
+
+for file in $HOME_DIR/core/lib_managed/scala_2.8.0/compile/*.jar;
+do
+  if [ ${file##*/} != "sbt-launch.jar" ]; then
+    CLASSPATH=$CLASSPATH:$file
+  fi
+done
+# End classpath building code taken from kafka-0.7.2-incubating-src/bin/kafka-run-class.sh
+
 
 # Add the JMX options.
 if [ -z "$JMX_OPTS"]; then
@@ -45,7 +76,7 @@ else
 fi
 
 # Create the JSVC command line.
-CMD="$JAVA $KAFKA_OPTS $JMX_OPTS -cp $CP"
+CMD="$JAVA $KAFKA_OPTS $JMX_OPTS -cp $CLASSPATH"
 
 # Find current PID if any.
 FOUND_PID=`ps -ef |grep $MAIN |grep -v grep |awk '{print $2}'`
